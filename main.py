@@ -1,4 +1,3 @@
-from pynput.keyboard import Listener
 import src.scenes.inputModeScene as inputModeScene
 import src.scenes.outputModeScene as outputModeScene
 import src.scenes.settingsScene as settingsScene

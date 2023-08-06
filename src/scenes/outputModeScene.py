@@ -1,12 +1,15 @@
-import socket, time, sys, pynput, pyautogui, asyncio
+import socket, time, pynput, pyautogui
 import threading
 import cowsay
 import socket
 def outputModeSceneFunc(ip, port):
 
-    host = socket.getaddrinfo(socket.gethostname(), None)
-    ipv4_addresses = [i[4][0] for i in host if i[0] == socket.AF_INET]
-    cowsay.cow(f'''Your ip adresses: {ipv4_addresses}''')
+    try:
+        host = socket.getaddrinfo(socket.gethostname(), None)
+        ipv4_addresses = [i[4][0] for i in host if i[0] == socket.AF_INET]
+        cowsay.cow(f'''Your ip adresses: {ipv4_addresses}''')
+    except:
+        cowsay.cow(f'''Your ip adresses: {socket.gethostbyname(socket.gethostname())}''')
 
     if ip is None:
         print('''
