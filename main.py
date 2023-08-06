@@ -1,8 +1,12 @@
-import socket, time
 from pynput.keyboard import Listener
-import pynput
+import src.scenes.inputModeScene as inputModeScene
+import src.scenes.outputModeScene as outputModeScene
+import src.scenes.settingsScene as settingsScene
+import src.utils.settingsStorageUtil as settingsStorageUtil
 
-print('''\033[1;34m
+while True:
+
+    print('''\033[1;34m
       /^       /^^/^^^^^^^         /^^   /^^  /^^^^^^^^/^^      /^^
      /^ ^^     /^^/^^    /^^       /^^  /^^   /^^       /^^    /^^ 
     /^  /^^    /^^/^^    /^^       /^^ /^^    /^^        /^^ /^^   
@@ -10,144 +14,49 @@ print('''\033[1;34m
   /^^^^^^ /^^  /^^/^^  /^^         /^^  /^^   /^^          /^^     
  /^^       /^^ /^^/^^    /^^       /^^   /^^  /^^          /^^     
 /^^         /^^/^^/^^      /^^     /^^     /^^/^^^^^^^^    /^^ \033[0m  
-                                                     BETA   v1.0.0  
-      
+                                                        BETA   v1.0.0  
+        
 \033[1;35mWelcome to AIR KEY!\033[0m
 This is a keylogger that sends the keystrokes to another device throw your LAN network!
 
 \033[4mSelect mode (number) of type of current device:\033[0m
-1. Output device 2. Input device
-''')
-mode = input()
-if mode == '1':
-    print('''
-\033[1;35mOutput device mode activated\033[0m
-\033[4mPlease enter the IP address of the device that will receive the keystrokes:\033[0m
-''')
-    ip = input()
-    print('''
-\033[4mPlease enter the port of the device that will receive the keystrokes:\033[0m
-''')
-    port = input()
-    print('''
-\033[1;35mStarting AIR KEY...\033[0m''')
-    conn = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    attempt = 0
-    while attempt < 4:
+1. Set current device as output 
+2. Set current device as input
+3. Load saved configuration
+4. Settings and configuration
+5. Exit
+    ''')
+    storageUtil = settingsStorageUtil.StorageUtil()
+    storageUtil.check()
+    mode = input()
+    if mode == '1': outputModeScene.outputModeSceneFunc(None, None)
+    elif mode == '2': inputModeScene.inputModeSceneFunc(None, None)
+    elif mode == '3':
         try:
-            conn.connect((ip, int(port)))
-            attempt = 5
-        except:
-            if attempt > 2:
-                print('''
-\033[1;31mError while connecting to the device!\033[0m
+            mode = storageUtil.getMode()
+            ip = storageUtil.getIp()
+            port = storageUtil.getPort()
+            if mode == '1': outputModeScene.outputModeSceneFunc(ip, port)
+            elif mode == '2': inputModeScene.inputModeSceneFunc(ip, port)
+        except(Exception) as err:
+            print (err)
+            print('''
+\033[1;31mError while loading settings!\033[0m
 \033[1;4mThis may be because of:\033[0m
-\033[1m1. Wrong IP address \033[0m
+\033[1m1. Wrong settings file\033[0m
+    Check if the settings file is in the same directory as the program
+\033[1m2. Wrong mode\033[0m
+    Check if the mode is correct
+\033[1m3. Wrong IP address \033[0m
     Check current device local IP address and try again
-\033[1m2. Wrong port\033[0m
+\033[1m4. Wrong port\033[0m
     Check is the port is open and not used by another program
-\033[1m3. Wrong mode\033[0m
-    Check if the device is in the right mode
-\033[1m4. Firewall or antivirus\033[0m
-    Check if the firewall or antivirus is blocking the connection or program     
-\033[1m5. Input device host is offline\033[0m
+\033[1m5. Firewall or antivirus\033[0m
+    Check if the firewall or antivirus is blocking the connection or program
+\033[1m6. Input device host is offline\033[0m
     Device air key host that you are trying to connect to is not online.
             ''')
-                exit()
-            else :
-                print(f'''
-\033[1;31mCannot establish connection!\033[0m
-Next attempt in 5 seconds...\033[0m
-                ''')
-                time.sleep(5)
-                attempt += 1
-
-    print ('''
-\033[1;32mConnected to the device! \033[0m
-    ''')
-
-    print (f'''
-Connected to {ip}:{port} succesfuly!
-Now you can start typing on this computer and the keystrokes will be sent to the other device!''')
-
-    def on_press(key):
-        data = str(key)
-        if len (data) > 3 :
-            data = data[4:]
-        else:
-            data = data[1:-1] 
-        conn.send(data.encode('utf-8'))
-
-    with Listener(on_press = on_press) as listener:
-        listener.join()     
-elif mode == '2':
-    print('''
-\033[1;35mInput device mode activated\033[0m
-\033[4mPlease enter the IP address of the device that will receive the keystrokes:\033[0m
-''')
-    ip = input()
-    print('''
-\033[4mPlease enter the port that will receive the keystrokes: \033[0m
-    ''')
-    port = input()
-    print('''
-\033[1;35mStarting AIR KEY...\033[0m
-    ''')
-    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    try:
-        s.bind((ip, int(port)))
-        s.listen(5)
-    except:
-         print('''
-\033[1;31mError while working on host!\033[0m
-\033[1;4mThis may be because of:\033[0m
-\033[1m1. Wrong IP address \033[0m
-    Check current device local IP address and try again
-\033[1m2. Wrong port\033[0m
-    Check is the port is open and not used by another program
-\033[1m3. Wrong mode\033[0m
-    Check if the device is in the right mode
-\033[1m4. Firewall or antivirus\033[0m
-    Check if the firewall or antivirus is blocking the connection or program     
-        ''')
-    print(f"""
-\033[1;32mEverything is ready!\033[0m
-Your IP address is: {ip}
-Your port is: {port}
-Now enter this IP address and port on the other device and start typing!""")
-    while True:
-        try:
-            clientsocket, address = s.accept()
-        except:
-            print("""
-\033[1;31mError while accepting connection!\033[0m
-\033[1;4mThis may be because of:\033[0m
-\033[1m1. Output device is already running \033[0m
-    Check if the output device is already running and close it. Then try again
-\033[1m2. Wrong mode\033[0m
-    Check if the device is in the right mode
-\033[1m3. Firewall or antivirus\033[0m
-    Check if the firewall or antivirus is blocking the connection or program
-\033[1m4. Something else could happen\033[0m
-    Check if the output device is running and if the IP address and port are correct""")
-        print(f'''
-\033[1;35mConnection with {address} has been established!\033[0m
-Now this device has control over the other device!''')
-        while True:
-            try:
-                data = clientsocket.recv(1024)
-                if not data:
-                    break
-                data = data.decode('utf-8')
-                if len(data) > 1:
-                    pynput.keyboard.Controller().press(getattr(pynput.keyboard.Key, data))
-                else:
-                    try:
-                        pynput.keyboard.Controller().type(data)
-                    except:
-                        pass
-            except:
-                print(f"""
-\033[1;31mConnection from {address} is closed!\033[0m
-Now looking for new connections!""")
-    
+            exit()
+    elif mode == '4': settingsScene.settingsSceneFunc()
+    elif mode == '5': exit()
+        
