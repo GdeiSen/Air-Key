@@ -5,11 +5,11 @@ import socket
 def outputModeSceneFunc(ip, port):
 
     try:
-        host = socket.getaddrinfo(socket.gethostname(), None)
-        ipv4_addresses = [i[4][0] for i in host if i[0] == socket.AF_INET]
-        cowsay.cow(f'''Your ip adresses: {ipv4_addresses}''')
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        s.connect(("8.8.8.8", 80))
+        cowsay.cow(f'''Your ip adresses: {s.getsockname()[0]}''')
     except:
-        cowsay.cow(f'''Your ip adresses: {socket.gethostbyname(socket.gethostname())}''')
+        cowsay.cow(f'''I can't get your local ip! Do it by yourself now''')
 
     if ip is None:
         print('''
