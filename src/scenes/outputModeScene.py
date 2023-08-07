@@ -65,43 +65,39 @@ Connected to {ip}:{port} successfully!
 Now you can start typing on this computer and the keystrokes will be sent to the other device!''')
     global activate
     activate = False
-    def mouse_listener():
-        def on_click(x, y, button, pressed):
-            if pressed:
-                activation_area = 100
-                global activate
-                with open("settings.txt", 'r') as f:
-                    data = f.read()
-                    data = data.split('\n')
-                    activation_area = data[4]
-                    activation_area = int(activation_area)
-                    if data[3] != True and data[3] != 'True' and data[3] != 'true' and data[3] != '1':
-                        activation_area = 0
-                        activate = True
-                if y > pyautogui.size().height - activation_area and button == pynput.mouse.Button.left:
-                    activate = not activate
-                    print (f"Typing mode {'activated' if activate else 'deactivated'}")
+
+    def on_click(x, y, button, pressed):
+        if pressed:
+            activation_area = 100
+            global activate
+            with open("settings.txt", 'r') as f:
+                data = f.read()
+                data = data.split('\n')
+                activation_area = data[4]
+                activation_area = int(activation_area)
+                if data[3] != True and data[3] != 'True' and data[3] != 'true' and data[3] != '1':
+                    activation_area = 0
+                    activate = True
+            if y > pyautogui.size().height - activation_area and button == pynput.mouse.Button.left:
+                activate = not activate
+                print (f"Typing mode {'activated' if activate else 'deactivated'}")
                     
-        listener = pynput.mouse.Listener(on_click=on_click)
-        listener.start()
+    def on_press(key):
+        if not activate:
+            return
+        data = str(key)
+        if len (data) > 3 :
+            data = data[4:]
+        else:
+            data = data[1:-1] 
+        conn.send(data.encode('utf-8'))
 
-    def keyboard_listener():
-        def on_press(key):
-            if not activate:
-                return
-            data = str(key)
-            if len (data) > 3 :
-                data = data[4:]
-            else:
-                data = data[1:-1] 
-            conn.send(data.encode('utf-8'))
-        listener = pynput.keyboard.Listener(on_press=on_press)
-        listener.start()
+    with pynput.keyboard.Listener(on_press=on_press) as kl, \
+        pynput.mouse.Listener(on_click=on_click) as ml:
+        kl.join()
+        ml.join()
 
-    thread2 = threading.Thread(target=(mouse_listener()))
-    thread1 = threading.Thread(target=(keyboard_listener()))
-    thread2.start()
-    thread1.start()
+
     time.sleep(200000)
     cowsay.cow('''I am tired of waiting, I am going to sleep now!''')
     conn.close()
